@@ -1,1 +1,3 @@
-text-classification/*/model/
+
+###### text-classification
+text-classification/fasttext/model/
