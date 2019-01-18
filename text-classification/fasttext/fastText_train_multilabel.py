@@ -22,10 +22,10 @@ from fastText_model_multilabel import fastTextB as fastText
 
 
 #configuration
-FLAGS=tf.app.flags.FLAGS
+FLAGS = tf.app.flags.FLAGS
 
 
-tf.app.flags.DEFINE_string("cache_file_h5py", "/home/huzhiling/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/data.h5","path of training/validation/test data.")  #../data/sample_multiple_label.txt 多标签文件
+tf.app.flags.DEFINE_string("cache_file_h5py", "/home/huzhiling/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/data.h5", "path of training/validation/test data.")  #../data/sample_multiple_label.txt 多标签文件
 tf.app.flags.DEFINE_string("cache_file_pickle", "/home/huzhiling/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/vocab_label.pik", "path of vocabulary and label files")   #../data/sample_multiple_label.txt
 
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "learning rate")
@@ -43,7 +43,7 @@ tf.app.flags.DEFINE_integer("validate_every", 1, "Validate every validate_every 
 
 tf.app.flags.DEFINE_boolean("use_embedding", False, "whether to use embedding or not.")  # 是否使用外部embedding
 
-#1.load data(X:list of lint,y:int). 2.create session. 3.feed data. 4.training (5.validation) ,(6.prediction)
+# 1.load data(X:list of lint,y:int). 2.create session. 3.feed data. 4.training (5.validation) ,(6.prediction)
 
 
 def load_data(cache_file_h5py, cache_file_pickle):
@@ -202,7 +202,7 @@ def calculate_accuracy(labels_predicted, labels, eval_counter):
 
 
 
-def main():
+def main(_):
     # 1.load_data
     # word2index 词表
     # label2index label id
@@ -292,6 +292,7 @@ def main():
             test_loss, test_acc = do_eval(sess, fast_text, testX, testY, batch_size, index2label)  # testY1999
             print('测试集\nloss:{loss}    acc:{acc}'.format(loss=test_loss, acc=test_acc))
         pass
+
 
 if __name__ == "__main__":
     tf.app.run()
