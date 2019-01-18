@@ -9,16 +9,16 @@ Created on 2019-01-17
 @group:data
 """
 
+# 配置gpu资源
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'  # 使用 GPU 0
 import tensorflow as tf
 import numpy as np
-import os
 import word2vec
 import pickle
 import h5py
 from fastText_model_multilabel import fastTextB as fastText
 
-# 配置gpu资源
-os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'  # 使用 GPU 0
 
 
 #configuration
