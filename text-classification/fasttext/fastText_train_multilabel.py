@@ -25,8 +25,8 @@ from fastText_model_multilabel import fastTextB as fastText
 FLAGS = tf.app.flags.FLAGS
 
 
-tf.app.flags.DEFINE_string("cache_file_h5py", "/home/huzhiling/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/data.h5", "path of training/validation/test data.")  #../data/sample_multiple_label.txt 多标签文件
-tf.app.flags.DEFINE_string("cache_file_pickle", "/home/huzhiling/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/vocab_label.pik", "path of vocabulary and label files")   #../data/sample_multiple_label.txt
+tf.app.flags.DEFINE_string("cache_file_h5py", "/data/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/data.h5", "path of training/validation/test data.")  #../data/sample_multiple_label.txt 多标签文件
+tf.app.flags.DEFINE_string("cache_file_pickle", "/data/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/vocab_label.pik", "path of vocabulary and label files")   #../data/sample_multiple_label.txt
 
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "learning rate")
 tf.app.flags.DEFINE_integer("batch_size", 128, "Batch size for training/evaluating.")  # 512批处理的大小 32-->128
