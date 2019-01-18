@@ -18,7 +18,7 @@ import h5py
 from fastText_model_multilabel import fastTextB as fastText
 
 # 配置gpu资源
-os.environ['CUDA_VISIBLE_DEVICES'] = '6,7' # 使用 GPU 0
+os.environ['CUDA_VISIBLE_DEVICES'] = '6,7'  # 使用 GPU 0
 
 
 #configuration
@@ -119,12 +119,14 @@ def do_eval(sess, fast_text, evalX, evalY, batch_size, vocabulary_index2word_lab
     eval_loss, eval_acc, eval_counter = 0.0, 0.0, 0
     batch_size = 1
     for start, end in zip(range(0, number_examples, batch_size), range(batch_size, number_examples,batch_size)):
-        evalY_batch = process_labels(evalY[start:end])
+        evalY_batch = process_labels(evalY[start:end])   # 整理成 [类别x， 类别x， 类别y， 类别y， 类别z] 的形式
         curr_eval_loss, logit = sess.run([fast_text.loss_val, fast_text.logits],  # curr_eval_acc-->fast_text.accuracy
-                                          feed_dict={fast_text.sentence: evalX[start:end], fast_text.labels_l1999: evalY[start:end]}) #,fast_text.labels_l1999:evalY1999[start:end]
-        #print("do_eval.logits_",logits_.shape)
-        label_list_top5 = get_label_using_logits(logit[0], vocabulary_index2word_label)
-        curr_eval_acc = calculate_accuracy(list(label_list_top5), evalY_batch[0], eval_counter) # evalY[start:end][0]
+                                          feed_dict={fast_text.sentence: evalX[start:end],
+                                                     fast_text.labels_l1999: evalY[start:end]}) #,fast_text.labels_l1999:evalY1999[start:end]
+        # print("do_eval.logits_", logits_.shape)
+        label_list_top5 = get_label_using_logits(logit[0], vocabulary_index2word_label)  # 选出概率最大的前5个label
+        curr_eval_acc = calculate_accuracy(list(label_list_top5), evalY_batch[0], eval_counter)  # evalY[start:end][0]
+        print('evalY_batch shape: {0} * {1}'.format(evalY_batch.shape))
         eval_loss, eval_counter, eval_acc = eval_loss+curr_eval_loss, eval_counter+1, eval_acc+curr_eval_acc
 
     return eval_loss/float(eval_counter), eval_acc/float(eval_counter)
@@ -144,8 +146,8 @@ def process_labels(trainY_batch, require_size=5, number=None):
         y_list_sparse = trainY_batch[index]
         y_list_dense = [i for i, label in enumerate(y_list_sparse) if int(label) == 1]  # 选出每个样本所有标签 label向量中为1的
         y_list = process_label_to_algin(y_list_dense, require_size=require_size)
-        trainY_batch_result[index]=y_list
-        if number is not None and number%30==0:
+        trainY_batch_result[index] = y_list
+        if number is not None and number%30 == 0:
             pass
             #print("####0.y_list_sparse:",y_list_sparse)
             #print("####1.y_list_dense:",y_list_dense)
@@ -155,7 +157,7 @@ def process_labels(trainY_batch, require_size=5, number=None):
         pass
     return trainY_batch_result
 
-def process_label_to_algin(ys_list,require_size=5):
+def process_label_to_algin(ys_list, require_size=5):
     """
     given a list of labels, process it to fixed size('require_size')
     :param ys_list: a list
@@ -174,6 +176,28 @@ def process_label_to_algin(ys_list,require_size=5):
        elif len(ys_list) == 4:
            ys_list_result = [ys_list[0], ys_list[0], ys_list[1], ys_list[2], ys_list[3]]
     return ys_list_result
+
+#从logits中取出前五 get label using logits  返回list的index
+def get_label_using_logits(logits, vocabulary_index2word_label, top_number=5):
+    index_list = np.argsort(logits)[-top_number:]  # 排序返回index 默认从小到大
+    index_list = index_list[::-1]
+    #label_list=[]
+    #for index in index_list:
+    #    label=vocabulary_index2word_label[index]
+    #    label_list.append(label) #('get_label_using_logits.label_list:', [u'-3423450385060590478', u'2838091149470021485', u'-3174907002942471215', u'-1812694399780494968', u'6815248286057533876'])
+    return index_list
+
+#统计预测的准确率
+def calculate_accuracy(labels_predicted, labels, eval_counter):
+    if eval_counter<10:
+        print("labels_predicted:", labels_predicted, " ;labels:",labels)
+    count = 0
+    label_dict = {x: x for x in labels}
+    for label_predict in labels_predicted:
+        flag = label_dict.get(label_predict, None)
+        if flag is not None:
+            count = count + 1
+    return count / len(labels)
 
 
 
@@ -215,36 +239,59 @@ def main():
                 vocabulary_index2word = {v: k for k, v in word2index.items()}
                 assign_pretrained_word_embedding(sess, vocabulary_index2word, vocab_size, fast_text)
 
-            curr_epoch = sess.run(fast_text.epoch_step)
+        curr_epoch = sess.run(fast_text.epoch_step)
 
-            # 3.feed data & training
-            number_of_training_data = len(trainX)  # 训练数据量
-            batch_size = FLAGS.batch_size
-            for epoch in range(curr_epoch, FLAGS.num_epochs):
-                loss, acc, counter = 0.0, 0.0, 0
-                for start, end in zip(range(0, number_of_training_data, batch_size), range(batch_size, number_of_training_data, batch_size)):
-                    curr_loss, current_l2_loss, _ = sess.run([fast_text.loss_val, fast_text.l2_losses, fast_text.train_op],
-                                                             feed_dict={fast_text.sentence: trainX[start: end],
-                                                                        fast_text.labels_l1999: trainY[start: end]})
+        # 3.feed data & training
+        number_of_training_data = len(trainX)  # 训练数据量
+        batch_size = FLAGS.batch_size
+        for epoch in range(curr_epoch, FLAGS.num_epochs):
+            loss, acc, counter = 0.0, 0.0, 0
+            for start, end in zip(range(0, number_of_training_data, batch_size), range(batch_size, number_of_training_data, batch_size)):
+                curr_loss, current_l2_loss, _ = sess.run([fast_text.loss_val, fast_text.l2_losses, fast_text.train_op],
+                                                         feed_dict={fast_text.sentence: trainX[start: end],
+                                                                    fast_text.labels_l1999: trainY[start: end]})
 
-                    if epoch == 0 and counter == 0:
-                        print("trainX[start:end]:", trainX[start:end])  # 2d-array. each element slength is a 100.
-                        print("train_Y_batch:",
-                              trainY[start:end])  # a list,each element is a list.element:may be has 1,2,3,4,5 labels.
+                if epoch == 0 and counter == 0:
+                    print("trainX[start:end]:", trainX[start:end])  # 2d-array. each element slength is a 100.
+                    print("train_Y_batch:",
+                          trainY[start:end])  # a list,each element is a list.element:may be has 1,2,3,4,5 labels.
 
-                    loss, counter = loss + curr_loss, counter + 1  # acc+curr_acc loss累加 counter：统计每个epoch的batch数
-                    if counter % 50 == 0:
-                        print("Epoch %d\tBatch %d\tTrain Loss:%.3f\tL2 Loss:%.3f" % (epoch, counter, loss / float(counter), current_l2_loss))
-                        # \tTrain Accuracy:%.3f--->,acc/float(counter)
+                loss, counter = loss + curr_loss, counter + 1  # acc+curr_acc loss累加 counter：统计每个epoch的batch数
+                if counter % 50 == 0:
+                    print("Epoch %d\tBatch %d\tTrain Loss:%.3f\tL2 Loss:%.3f" % (epoch, counter, loss / float(counter), current_l2_loss))
+                    # \tTrain Accuracy:%.3f--->,acc/float(counter)
 
-                    if start % (1000 * FLAGS.batch_size) == 0:  # 每1000个batch 做一次验证
-                        eval_loss, eval_accuracy = do_eval(sess, fast_text, vaildX, vaildY, batch_size,
-                                                           index2label)  # testY1999,eval_acc
+                if start % (1000 * FLAGS.batch_size) == 0:  # 每1000个batch 做一次验证
+                    eval_loss, eval_accuracy = do_eval(sess, fast_text, vaildX, vaildY, batch_size,
+                                                       index2label)  # testY1999,eval_acc
+                    print("Epoch %d Validation Loss:%.3f\tValidation Accuracy: %.3f" % (epoch, eval_loss, eval_accuracy))
+                    # ,\tValidation Accuracy: %.3f--->eval_acc
 
+                    # save model to checkpoint 保存模型  每6000 * FLAGS.batch_size 保存一次
+                    if start % (6000 * FLAGS.batch_size) == 0:
+                        print("Going to save checkpoint.")
+                        save_path = FLAGS.ckpt_dir + "model.ckpt"
+                        saver.save(sess, save_path, global_step=epoch)  # fast_text.epoch_step
 
+            # epoch increment
+            print("going to increment epoch counter....")
+            sess.run(fast_text.epoch_increment)  # 记录epoch数
 
+            # 4.validation
+            print("epoch:", epoch, "validate_every:", FLAGS.validate_every, "validate or not:", (epoch % FLAGS.validate_every==0))
+            if epoch % FLAGS.validate_every == 0:
+                eval_loss, eval_accuracy = do_eval(sess, fast_text, vaildX, vaildY, batch_size,
+                                                   index2label)  # testY1999,eval_acc
+                print("Epoch %d Validation Loss:%.3f\tValidation Accuracy: %.3f" % (epoch, eval_loss, eval_accuracy))  # ,\tValidation Accuracy: %.3f--->eval_acc
+                # save model to checkpoint
+                print("Going to save checkpoint.")
+                save_path=FLAGS.ckpt_dir+"model.ckpt"
+                saver.save(sess,save_path,global_step=epoch)  # fast_text.epoch_step
 
+            # 5.最后在测试集上做测试，并报告测试准确率 Test
+            test_loss, test_acc = do_eval(sess, fast_text, testX, testY, batch_size, index2label)  # testY1999
+            print('测试集\nloss:{loss}    acc:{acc}'.format(loss=test_loss, acc=test_acc))
+        pass
 
-
-
-
+if __name__ == "__main__":
+    tf.app.run()
