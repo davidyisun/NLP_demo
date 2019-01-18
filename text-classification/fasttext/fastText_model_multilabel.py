@@ -45,6 +45,9 @@ class fastTextB(object):
         # 6.calculate loss
         self.loss_val = self.loss()
 
+        # 7.start training by update parameters using according loss
+        self.train_op = self.train()
+
 
 
 
