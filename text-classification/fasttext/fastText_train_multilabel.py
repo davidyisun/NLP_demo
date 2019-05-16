@@ -26,7 +26,7 @@ FLAGS = tf.app.flags.FLAGS
 
 
 tf.app.flags.DEFINE_string("cache_file_h5py", "/data/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/data.h5", "path of training/validation/test data.")  #../data/sample_multiple_label.txt 多标签文件
-tf.app.flags.DEFINE_string("cache_file_pickle", "/data/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/vocab_label.pik", "path of vocabulary and label files")   #../data/sample_multiple_label.txt
+tf.app.flags.DEFINE_string("cache_file_pickle", "/data/demo/data/text-classify/text-classification/data/ieee_zhihu_cup/vocab_label.pik", "path of vocabulary and label files")   #../data/sample_multiple_label.txt 词表
 
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "learning rate")
 tf.app.flags.DEFINE_integer("batch_size", 128, "Batch size for training/evaluating.")  # 512批处理的大小 32-->128
@@ -38,7 +38,7 @@ tf.app.flags.DEFINE_string("ckpt_dir", "./model", "checkpoint location for the m
 tf.app.flags.DEFINE_integer("sentence_len", 200, "max sentence length")  # 句子长度 多少个词
 tf.app.flags.DEFINE_integer("embed_size", 128, "embedding size")  # 128 embedding size
 tf.app.flags.DEFINE_boolean("is_training", True, "is traning.true:tranining,false:testing/inference")  # 训练还是推断
-tf.app.flags.DEFINE_integer("num_epochs", 25, "embedding size")  # epoch 数量
+tf.app.flags.DEFINE_integer("num_epochs", 25, "epoch number")  # epoch 数量
 tf.app.flags.DEFINE_integer("validate_every", 1, "Validate every validate_every epochs.")  # 每10轮做一次验证
 
 tf.app.flags.DEFINE_boolean("use_embedding", False, "whether to use embedding or not.")  # 是否使用外部embedding
@@ -126,7 +126,7 @@ def do_eval(sess, fast_text, evalX, evalY, batch_size, vocabulary_index2word_lab
         # print("do_eval.logits_", logits_.shape)
         label_list_top5 = get_label_using_logits(logit[0], vocabulary_index2word_label)  # 选出概率最大的前5个label
         curr_eval_acc = calculate_accuracy(list(label_list_top5), evalY_batch[0], eval_counter)  # evalY[start:end][0]
-        print('evalY_batch shape: {0} * {1}'.format(evalY_batch.shape))
+        print('evalY_batch shape: {0} * {1}'.format(evalY_batch.shape[0], evalY.shape[1]))
         eval_loss, eval_counter, eval_acc = eval_loss+curr_eval_loss, eval_counter+1, eval_acc+curr_eval_acc
 
     return eval_loss/float(eval_counter), eval_acc/float(eval_counter)

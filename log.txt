@@ -1,0 +1,3 @@
+2019-02-19 16:46:23,181 - D:/workspace_for_python/to_github/NLP_demo/demo.py - INFO - Start print log
+2019-02-19 16:46:23,182 - D:/workspace_for_python/to_github/NLP_demo/demo.py - WARNING - Something maybe fail.
+2019-02-19 16:46:23,182 - D:/workspace_for_python/to_github/NLP_demo/demo.py - INFO - Finish
