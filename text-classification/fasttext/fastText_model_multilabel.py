@@ -8,7 +8,6 @@ Created on 2019-01-17
 """
 
 import tensorflow as tf
-
 class fastTextB(object):
     def __init__(self, label_size, learning_rate, batch_size, decay_steps, decay_rate, num_sampled, sentence_len, vocab_size,embed_size,is_training,max_label_per_example=5):
         """init all hyperparameter here"""
@@ -47,9 +46,6 @@ class fastTextB(object):
 
         # 7.start training by update parameters using according loss
         self.train_op = self.train()
-
-
-
 
 
     def instantiate_weights(self):
@@ -94,9 +90,4 @@ class fastTextB(object):
         # train_op = tf.contrib.layers.optimize_loss(self.loss_val, global_step=self.global_step,learning_rate=learning_rate, optimizer="Adam")
         train_op = tf.train.AdamOptimizer(learning_rate).minimize(loss=self.loss_val, global_step=self.global_step)
         return train_op
-
-
-
-
-
 
